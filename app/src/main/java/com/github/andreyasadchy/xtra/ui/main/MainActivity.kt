@@ -249,7 +249,7 @@ class MainActivity : AppCompatActivity(), SlidingLayout.Listener {
                                 ) {
                                     viewModel.checkUpdates(
                                         prefs.getString(C.NETWORK_LIBRARY, "OkHttp"),
-                                        prefs.getString(C.UPDATE_URL, null) ?: "https://api.github.com/repos/crackededed/xtra/releases/tags/latest",
+                                        prefs.getString(C.UPDATE_URL, null) ?: "https://api.github.com/repos/Jayfesco1/xtra/releases/tags/latest",
                                         tokenPrefs().getLong(C.UPDATE_LAST_CHECKED, 0)
                                     )
                                 }
