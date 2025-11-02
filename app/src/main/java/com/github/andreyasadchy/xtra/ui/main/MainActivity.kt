@@ -768,9 +768,9 @@ class MainActivity : AppCompatActivity(), SlidingLayout.Listener {
             }
         }, null)
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
-        val isTv = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
-        val navView = if (isTv) binding.navView else binding.navBar
-        if (!isTv) {
+        if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
+            binding.navView.setupWithNavController(navController)
+        } else {
             binding.navBar.apply {
                 if (!prefs.getBoolean(C.UI_THEME_BOTTOM_NAV_COLOR, true) && prefs.getBoolean(C.UI_THEME_MATERIAL3, true)) {
                     setBackgroundColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface))
@@ -804,10 +804,7 @@ class MainActivity : AppCompatActivity(), SlidingLayout.Listener {
                 } else {
                     binding.navBarContainer.gone()
                 }
-                setOnItemSelectedListener {
-                    NavigationUI.onNavDestinationSelected(it, navController)
-                    return@setOnItemSelectedListener true
-                }
+                setupWithNavController(navController)
                 setOnItemReselectedListener {
                     if (!navController.popBackStack(it.itemId, false)) {
                         val currentFragment = supportFragmentManager.findFragmentById(R.id.navHostFragment)?.childFragmentManager?.fragments?.getOrNull(0)
@@ -818,7 +815,6 @@ class MainActivity : AppCompatActivity(), SlidingLayout.Listener {
                 }
             }
         }
-        navView.setupWithNavController(navController)
     }
 
     @OptIn(UnstableApi::class)
