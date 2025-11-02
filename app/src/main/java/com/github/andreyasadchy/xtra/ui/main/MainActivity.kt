@@ -770,6 +770,35 @@ class MainActivity : AppCompatActivity(), SlidingLayout.Listener {
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
         if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
             binding.navView.setupWithNavController(navController)
+            if (tabList.any { it.split(':')[2] != "0" }) {
+                tabList.forEach {
+                    val split = it.split(':')
+                    val key = split[0]
+                    val enabled = split[2] != "0"
+                    if (enabled) {
+                        when (key) {
+                            "0" -> binding.navView.menu.add(Menu.NONE, R.id.rootGamesFragment, Menu.NONE, R.string.games).setIcon(R.drawable.ic_games_black_24dp)
+                            "1" -> binding.navView.menu.add(Menu.NONE, R.id.rootTopFragment, Menu.NONE, R.string.popular).setIcon(R.drawable.ic_trending_up_black_24dp)
+                            "2" -> {
+                                if (prefs.getBoolean(C.UI_FOLLOWPAGER, true)) {
+                                    binding.navView.menu.add(Menu.NONE, R.id.followPagerFragment, Menu.NONE, R.string.following).setIcon(R.drawable.ic_favorite_black_24dp)
+                                } else {
+                                    binding.navView.menu.add(Menu.NONE, R.id.followMediaFragment, Menu.NONE, R.string.following).setIcon(R.drawable.ic_favorite_black_24dp)
+                                }
+                            }
+                            "3" -> {
+                                if (prefs.getBoolean(C.UI_SAVEDPAGER, true)) {
+                                    binding.navView.menu.add(Menu.NONE, R.id.savedPagerFragment, Menu.NONE, R.string.saved).setIcon(R.drawable.ic_file_download_black_24dp)
+                                } else {
+                                    binding.navView.menu.add(Menu.NONE, R.id.savedMediaFragment, Menu.NONE, R.string.saved).setIcon(R.drawable.ic_file_download_black_24dp)
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                binding.navView.gone()
+            }
         } else {
             binding.navBar.apply {
                 if (!prefs.getBoolean(C.UI_THEME_BOTTOM_NAV_COLOR, true) && prefs.getBoolean(C.UI_THEME_MATERIAL3, true)) {
