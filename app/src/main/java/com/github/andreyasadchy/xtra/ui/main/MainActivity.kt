@@ -26,8 +26,10 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
+import android.app.UiModeManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -166,23 +168,36 @@ class MainActivity : AppCompatActivity(), SlidingLayout.Listener {
         applyTheme()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setNavBarColor(isInPortraitOrientation)
-        val ignoreCutouts = prefs.getBoolean(C.UI_DRAW_BEHIND_CUTOUTS, false)
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
-            val insets = if (ignoreCutouts) {
-                windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
-            } else {
-                windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime() or WindowInsetsCompat.Type.displayCutout())
+
+        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
+        if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
+            binding.navBarContainer.visibility = ViewGroup.GONE
+            binding.navView.visibility = ViewGroup.VISIBLE
+
+            val constraintSet = ConstraintSet()
+            constraintSet.clone(binding.mainContainer)
+            constraintSet.connect(R.id.navHostFragment, ConstraintSet.START, R.id.navView, ConstraintSet.END)
+            constraintSet.connect(R.id.navHostFragment, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
+            constraintSet.applyTo(binding.mainContainer)
+        } else {
+            setNavBarColor(isInPortraitOrientation)
+            val ignoreCutouts = prefs.getBoolean(C.UI_DRAW_BEHIND_CUTOUTS, false)
+            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
+                val insets = if (ignoreCutouts) {
+                    windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
+                } else {
+                    windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime() or WindowInsetsCompat.Type.displayCutout())
+                }
+                binding.navHostFragment.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    leftMargin = insets.left
+                    rightMargin = insets.right
+                }
+                binding.navBarContainer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    leftMargin = insets.left
+                    rightMargin = insets.right
+                }
+                windowInsets
             }
-            binding.navHostFragment.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                leftMargin = insets.left
-                rightMargin = insets.right
-            }
-            binding.navBarContainer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                leftMargin = insets.left
-                rightMargin = insets.right
-            }
-            windowInsets
         }
         settingsResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -752,53 +767,58 @@ class MainActivity : AppCompatActivity(), SlidingLayout.Listener {
                 }
             }
         }, null)
-        binding.navBar.apply {
-            if (!prefs.getBoolean(C.UI_THEME_BOTTOM_NAV_COLOR, true) && prefs.getBoolean(C.UI_THEME_MATERIAL3, true)) {
-                setBackgroundColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface))
-            }
-            if (tabList.any { it.split(':')[2] != "0" }) {
-                tabList.forEach {
-                    val split = it.split(':')
-                    val key = split[0]
-                    val enabled = split[2] != "0"
-                    if (enabled) {
-                        when (key) {
-                            "0" -> menu.add(Menu.NONE, R.id.rootGamesFragment, Menu.NONE, R.string.games).setIcon(R.drawable.ic_games_black_24dp)
-                            "1" -> menu.add(Menu.NONE, R.id.rootTopFragment, Menu.NONE, R.string.popular).setIcon(R.drawable.ic_trending_up_black_24dp)
-                            "2" -> {
-                                if (prefs.getBoolean(C.UI_FOLLOWPAGER, true)) {
-                                    menu.add(Menu.NONE, R.id.followPagerFragment, Menu.NONE, R.string.following).setIcon(R.drawable.ic_favorite_black_24dp)
-                                } else {
-                                    menu.add(Menu.NONE, R.id.followMediaFragment, Menu.NONE, R.string.following).setIcon(R.drawable.ic_favorite_black_24dp)
+        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
+        val isTv = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+        val navView = if (isTv) binding.navView else binding.navBar
+        if (!isTv) {
+            binding.navBar.apply {
+                if (!prefs.getBoolean(C.UI_THEME_BOTTOM_NAV_COLOR, true) && prefs.getBoolean(C.UI_THEME_MATERIAL3, true)) {
+                    setBackgroundColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface))
+                }
+                if (tabList.any { it.split(':')[2] != "0" }) {
+                    tabList.forEach {
+                        val split = it.split(':')
+                        val key = split[0]
+                        val enabled = split[2] != "0"
+                        if (enabled) {
+                            when (key) {
+                                "0" -> menu.add(Menu.NONE, R.id.rootGamesFragment, Menu.NONE, R.string.games).setIcon(R.drawable.ic_games_black_24dp)
+                                "1" -> menu.add(Menu.NONE, R.id.rootTopFragment, Menu.NONE, R.string.popular).setIcon(R.drawable.ic_trending_up_black_24dp)
+                                "2" -> {
+                                    if (prefs.getBoolean(C.UI_FOLLOWPAGER, true)) {
+                                        menu.add(Menu.NONE, R.id.followPagerFragment, Menu.NONE, R.string.following).setIcon(R.drawable.ic_favorite_black_24dp)
+                                    } else {
+                                        menu.add(Menu.NONE, R.id.followMediaFragment, Menu.NONE, R.string.following).setIcon(R.drawable.ic_favorite_black_24dp)
+                                    }
                                 }
-                            }
-                            "3" -> {
-                                if (prefs.getBoolean(C.UI_SAVEDPAGER, true)) {
-                                    menu.add(Menu.NONE, R.id.savedPagerFragment, Menu.NONE, R.string.saved).setIcon(R.drawable.ic_file_download_black_24dp)
-                                } else {
-                                    menu.add(Menu.NONE, R.id.savedMediaFragment, Menu.NONE, R.string.saved).setIcon(R.drawable.ic_file_download_black_24dp)
+                                "3" -> {
+                                    if (prefs.getBoolean(C.UI_SAVEDPAGER, true)) {
+                                        menu.add(Menu.NONE, R.id.savedPagerFragment, Menu.NONE, R.string.saved).setIcon(R.drawable.ic_file_download_black_24dp)
+                                    } else {
+                                        menu.add(Menu.NONE, R.id.savedMediaFragment, Menu.NONE, R.string.saved).setIcon(R.drawable.ic_file_download_black_24dp)
+                                    }
                                 }
                             }
                         }
                     }
+                } else {
+                    binding.navBarContainer.gone()
                 }
-            } else {
-                binding.navBarContainer.gone()
-            }
-            setupWithNavController(navController)
-            setOnItemSelectedListener {
-                NavigationUI.onNavDestinationSelected(it, navController)
-                return@setOnItemSelectedListener true
-            }
-            setOnItemReselectedListener {
-                if (!navController.popBackStack(it.itemId, false)) {
-                    val currentFragment = supportFragmentManager.findFragmentById(R.id.navHostFragment)?.childFragmentManager?.fragments?.getOrNull(0)
-                    if (currentFragment is Scrollable) {
-                        currentFragment.scrollToTop()
+                setOnItemSelectedListener {
+                    NavigationUI.onNavDestinationSelected(it, navController)
+                    return@setOnItemSelectedListener true
+                }
+                setOnItemReselectedListener {
+                    if (!navController.popBackStack(it.itemId, false)) {
+                        val currentFragment = supportFragmentManager.findFragmentById(R.id.navHostFragment)?.childFragmentManager?.fragments?.getOrNull(0)
+                        if (currentFragment is Scrollable) {
+                            currentFragment.scrollToTop()
+                        }
                     }
                 }
             }
         }
+        navView.setupWithNavController(navController)
     }
 
     @OptIn(UnstableApi::class)
