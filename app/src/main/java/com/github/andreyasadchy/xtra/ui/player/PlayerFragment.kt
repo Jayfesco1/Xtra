@@ -17,6 +17,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.text.format.DateFormat
 import android.util.Log
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.RoundedCorner
 import android.view.View
@@ -158,6 +159,19 @@ class PlayerFragment : BaseNetworkFragment(), SlidingLayout.Listener, PlayerGame
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
+            playerView.setOnKeyListener { _, keyCode, event ->
+                if (event.action == KeyEvent.ACTION_DOWN && playerView.isControllerFullyVisible) {
+                    when (keyCode) {
+                        KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                            val nextFocus = if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) View.FOCUS_LEFT else View.FOCUS_RIGHT
+                            val currentFocus = requireActivity().currentFocus
+                            currentFocus?.focusSearch(nextFocus)?.requestFocus()
+                            return@setOnKeyListener true
+                        }
+                    }
+                }
+                return@setOnKeyListener false
+            }
             slidingLayout.updateBackgroundColor(isPortrait)
             val ignoreCutouts = prefs.getBoolean(C.UI_DRAW_BEHIND_CUTOUTS, false)
             val cornerPadding = prefs.getBoolean(C.PLAYER_ROUNDED_CORNER_PADDING, false)
