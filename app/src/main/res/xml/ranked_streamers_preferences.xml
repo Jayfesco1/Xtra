@@ -11,7 +11,8 @@
             app:key="ranked_streamers_list"
             app:title="@string/ranked_streamers_list_title"
             app:summary="@string/ranked_streamers_list_summary"
-            app:dialogTitle="@string/ranked_streamers_list_dialog_title" />
+            app:dialogTitle="@string/ranked_streamers_list_dialog_title"
+            app:dialogLayout="@layout/dialog_edittext_multiline" />
 
     </PreferenceCategory>
 
