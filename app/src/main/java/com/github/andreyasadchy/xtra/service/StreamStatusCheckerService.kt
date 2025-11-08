@@ -2,11 +2,11 @@ package com.github.andreyasadchy.xtra.service
 
 import android.app.Service
 import android.content.Intent
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.github.andreyasadchy.xtra.model.ui.Stream
 import com.github.andreyasadchy.xtra.repository.HelixRepository
 import com.github.andreyasadchy.xtra.ui.main.MainActivity
@@ -86,13 +86,28 @@ class StreamStatusCheckerService : Service() {
                     headers = TwitchApiHelper.getHelixHeaders(applicationContext),
                     logins = streamerLogins
                 )
-                val liveStreams = response.data
+                val liveStreams = response.data.map {
+                    Stream(
+                        id = it.id,
+                        channelId = it.user_id,
+                        channelLogin = it.user_login,
+                        channelName = it.user_name,
+                        title = it.title,
+                        viewerCount = it.viewer_count,
+                        startedAt = it.started_at,
+                        thumbnail = it.thumbnail_url.replace("{width}", "320").replace("{height}", "180"),
+                        gameId = it.game_id,
+                        gameName = it.game_name,
+                        channelLogo = null,
+                        gameSlug = null
+                    )
+                }
                 val currentlyPlaying = prefs().getString(C.CURRENTLY_PLAYING_STREAM, null)
                 var highestRankedLiveStream: Stream? = null
                 var highestRank = Int.MAX_VALUE
 
                 for (stream in liveStreams) {
-                    val rank = streamerLogins.indexOf(stream.userLogin)
+                    val rank = streamerLogins.indexOf(stream.channelLogin)
                     if (rank != -1 && rank < highestRank) {
                         highestRank = rank
                         highestRankedLiveStream = stream
@@ -100,11 +115,11 @@ class StreamStatusCheckerService : Service() {
                 }
 
                 if (highestRankedLiveStream != null) {
-                    val currentlyPlayingIsLive = liveStreams.any { it.userLogin.equals(currentlyPlaying, ignoreCase = true) }
+                    val currentlyPlayingIsLive = liveStreams.any { it.channelLogin.equals(currentlyPlaying, ignoreCase = true) }
                     val currentRank = streamerLogins.indexOf(currentlyPlaying)
 
                     if (currentlyPlaying.isNullOrEmpty() || !currentlyPlayingIsLive || (currentRank != -1 && highestRank < currentRank)) {
-                        prefs().edit().putString(C.CURRENTLY_PLAYING_STREAM, highestRankedLiveStream.userLogin).apply()
+                        prefs().edit().putString(C.CURRENTLY_PLAYING_STREAM, highestRankedLiveStream.channelLogin).apply()
                         val intent = Intent(ACTION_OPEN_STREAM).apply {
                             putExtra(MainActivity.KEY_VIDEO, highestRankedLiveStream)
                         }
