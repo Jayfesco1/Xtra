@@ -6,7 +6,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.github.andreyasadchy.xtra.model.ui.Stream
 import com.github.andreyasadchy.xtra.repository.HelixRepository
 import com.github.andreyasadchy.xtra.ui.main.MainActivity

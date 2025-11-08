@@ -93,6 +93,7 @@ dependencies {
     implementation(libs.viewpager2)
     implementation(libs.webkit)
     implementation(libs.work.runtime)
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
     implementation(libs.cronet.api)
     implementation(libs.okhttp)
