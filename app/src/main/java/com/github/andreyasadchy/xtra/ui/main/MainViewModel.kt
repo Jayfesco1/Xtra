@@ -22,6 +22,7 @@ import com.github.andreyasadchy.xtra.R
 import com.github.andreyasadchy.xtra.model.VideoPosition
 import com.github.andreyasadchy.xtra.model.ui.Clip
 import com.github.andreyasadchy.xtra.model.ui.OfflineVideo
+import com.github.andreyasadchy.xtra.model.ui.Stream
 import com.github.andreyasadchy.xtra.model.ui.User
 import com.github.andreyasadchy.xtra.model.ui.Video
 import com.github.andreyasadchy.xtra.repository.AuthRepository
@@ -96,6 +97,8 @@ class MainViewModel @Inject constructor(
     val video = MutableStateFlow<Video?>(null)
     val clip = MutableStateFlow<Clip?>(null)
     val user = MutableStateFlow<User?>(null)
+    private val _stream = MutableStateFlow<Stream?>(null)
+    val stream: MutableStateFlow<Stream?> = _stream
 
     val updateUrl = MutableSharedFlow<String?>()
 
@@ -931,6 +934,40 @@ class MainViewModel @Inject constructor(
     fun deleteOldImages() {
         viewModelScope.launch(Dispatchers.IO) {
             offlineRepository.deleteOldImages()
+        }
+    }
+
+    fun handleChannelLink(login: String?, networkLibrary: String?, gqlHeaders: Map<String, String>, helixHeaders: Map<String, String>, enableIntegrity: Boolean) {
+        if (stream.value == null && user.value == null) {
+            viewModelScope.launch {
+                try {
+                    val response = graphQLRepository.loadQueryStream(networkLibrary, gqlHeaders, login)
+                    if (enableIntegrity && integrity.value == null) {
+                        response.errors?.find { it.message == "failed integrity check" }?.let {
+                            integrity.value = "refresh"
+                            return@launch
+                        }
+                    }
+                    val streamData = response.data?.user?.stream
+                    if (streamData != null) {
+                        _stream.value = Stream(
+                            channelId = streamData.broadcaster?.id,
+                            channelLogin = streamData.broadcaster?.login,
+                            channelName = streamData.broadcaster?.displayName,
+                            profileImageUrl = streamData.broadcaster?.profileImageURL,
+                            title = streamData.title,
+                            gameId = streamData.game?.id,
+                            gameName = streamData.game?.name,
+                            viewerCount = streamData.viewersCount,
+                            thumbnailUrl = streamData.previewImageURL,
+                        )
+                    } else {
+                        loadUser(login, networkLibrary, gqlHeaders, helixHeaders, enableIntegrity)
+                    }
+                } catch (e: Exception) {
+                    loadUser(login, networkLibrary, gqlHeaders, helixHeaders, enableIntegrity)
+                }
+            }
         }
     }
 }
