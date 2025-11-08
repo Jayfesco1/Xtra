@@ -948,16 +948,17 @@ class MainViewModel @Inject constructor(
                             return@launch
                         }
                     }
-                    val streamData = response.data?.users?.firstOrNull()?.stream
+                    val userData = response.data?.users?.firstOrNull()
+                    val streamData = userData?.stream
                     if (streamData != null) {
                         _stream.value = Stream(
-                            channelId = streamData.broadcaster?.id,
-                            channelLogin = streamData.broadcaster?.login,
-                            channelName = streamData.broadcaster?.displayName,
-                            profileImageUrl = streamData.broadcaster?.profileImageURL,
-                            title = streamData.title,
+                            channelId = userData?.id,
+                            channelLogin = userData?.login,
+                            channelName = userData?.displayName,
+                            profileImageUrl = userData?.profileImageURL,
+                            title = streamData.broadcaster?.broadcastSettings?.title,
                             gameId = streamData.game?.id,
-                            gameName = streamData.game?.name,
+                            gameName = streamData.game?.displayName,
                             viewerCount = streamData.viewersCount,
                             thumbnailUrl = streamData.previewImageURL,
                         )
