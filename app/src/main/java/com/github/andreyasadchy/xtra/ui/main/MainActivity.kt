@@ -33,6 +33,7 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -59,6 +60,7 @@ import com.github.andreyasadchy.xtra.R
 import com.github.andreyasadchy.xtra.databinding.ActivityMainBinding
 import com.github.andreyasadchy.xtra.model.ui.Clip
 import com.github.andreyasadchy.xtra.model.ui.OfflineVideo
+import com.github.andreyasadchy.xtra.service.StreamStatusCheckerService
 import com.github.andreyasadchy.xtra.model.ui.Stream
 import com.github.andreyasadchy.xtra.model.ui.Video
 import com.github.andreyasadchy.xtra.ui.channel.ChannelPagerFragmentDirections
@@ -324,6 +326,24 @@ class MainActivity : AppCompatActivity(), SlidingLayout.Listener {
                     .build()
             )
         }
+        if (prefs.getBoolean(C.AUTO_PLAY_ENABLED, false)) {
+            startService(Intent(this, StreamStatusCheckerService::class.java))
+        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == StreamStatusCheckerService.ACTION_OPEN_STREAM) {
+                    val stream = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent.getParcelableExtra(KEY_VIDEO, Stream::class.java)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        intent.getParcelableExtra(KEY_VIDEO)
+                    }
+                    if (stream != null) {
+                        startStream(stream)
+                    }
+                }
+            }
+        }, IntentFilter(StreamStatusCheckerService.ACTION_OPEN_STREAM))
     }
 
     private fun setNavBarColor(isPortrait: Boolean) {

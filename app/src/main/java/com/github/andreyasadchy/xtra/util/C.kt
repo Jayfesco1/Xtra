@@ -292,4 +292,7 @@ object C {
     const val ENABLE_INTEGRITY = "enable_integrity"
     const val USE_WEBVIEW_INTEGRITY = "use_webview_integrity"
     const val GET_ALL_GQL_HEADERS = "get_all_gql_headers"
+    const val RANKED_STREAMERS_LIST = "ranked_streamers_list"
+    const val CURRENTLY_PLAYING_STREAM = "currently_playing_stream"
+    const val AUTO_PLAY_ENABLED = "auto_play_enabled"
 }
