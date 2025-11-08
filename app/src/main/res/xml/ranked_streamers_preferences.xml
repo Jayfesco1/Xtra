@@ -1,0 +1,18 @@
+<androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/ranked_streamers">
+
+        <SwitchPreferenceCompat
+            app:key="auto_play_enabled"
+            app:title="@string/auto_play_title"
+            app:summary="@string/auto_play_summary" />
+
+        <EditTextPreference
+            app:key="ranked_streamers_list"
+            app:title="@string/ranked_streamers_list_title"
+            app:summary="@string/ranked_streamers_list_summary"
+            app:dialogTitle="@string/ranked_streamers_list_dialog_title" />
+
+    </PreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

@@ -109,4 +109,11 @@
     <action
         android:id="@+id/action_global_settingsSearchFragment"
         app:destination="@id/settingsSearchFragment" />
+    <fragment
+        android:id="@+id/rankedStreamersSettingsFragment"
+        android:name="com.github.andreyasadchy.xtra.ui.settings.RankedStreamersSettingsFragment"
+        android:label="@string/ranked_streamers" />
+    <action
+        android:id="@+id/action_global_rankedStreamersSettingsFragment"
+        app:destination="@id/rankedStreamersSettingsFragment" />
 </navigation>

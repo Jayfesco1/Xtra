@@ -609,6 +609,8 @@ class ChatFragment : BaseNetworkFragment(), MessageClickedDialog.OnButtonClickLi
                         repeatOnLifecycle(Lifecycle.State.STARTED) {
                             viewModel.raid.collectLatest { raid ->
                                 if (raid != null) {
+                                    val intent = Intent(StreamStatusCheckerService.ACTION_RAID)
+                                    requireContext().startService(intent)
                                     if (!viewModel.raidClosed) {
                                         if (raid.openStream) {
                                             if (requireContext().prefs().getBoolean(C.CHAT_RAIDS_AUTO_SWITCH, true) && parentFragment is PlayerFragment) {

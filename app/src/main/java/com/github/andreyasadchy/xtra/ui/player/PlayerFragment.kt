@@ -1798,6 +1798,8 @@ class PlayerFragment : BaseNetworkFragment(), SlidingLayout.Listener, PlayerGame
                                             when {
                                                 responseCode == 404 -> {
                                                     requireContext().toast(R.string.stream_ended)
+                                                    val intent = Intent(StreamStatusCheckerService.ACTION_STREAM_ENDED)
+                                                    requireContext().startService(intent)
                                                 }
                                                 viewModel.useCustomProxy && responseCode >= 400 -> {
                                                     requireContext().toast(R.string.proxy_error)

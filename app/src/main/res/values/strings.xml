@@ -727,4 +727,10 @@
     <string name="game_tabs">Game tabs</string>
     <string name="search_tabs">Search tabs</string>
     <string name="add_tag">Add tag</string>
+    <string name="ranked_streamers">Ranked Streamers</string>
+    <string name="ranked_streamers_list_title">Streamer Priority</string>
+    <string name="ranked_streamers_list_summary">Set the priority of streamers to determine auto-play order</string>
+    <string name="ranked_streamers_list_dialog_title">Enter streamer names, one per line</string>
+    <string name="auto_play_title">Enable Auto-Play</string>
+    <string name="auto_play_summary">Automatically play the highest-ranked stream</string>
 </resources>
