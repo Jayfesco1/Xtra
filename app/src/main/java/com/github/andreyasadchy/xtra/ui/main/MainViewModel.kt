@@ -941,14 +941,14 @@ class MainViewModel @Inject constructor(
         if (stream.value == null && user.value == null) {
             viewModelScope.launch {
                 try {
-                    val response = graphQLRepository.loadQueryStream(networkLibrary, gqlHeaders, login)
+                    val response = graphQLRepository.loadQueryUsersStream(networkLibrary, gqlHeaders, logins = listOf(login!!))
                     if (enableIntegrity && integrity.value == null) {
                         response.errors?.find { it.message == "failed integrity check" }?.let {
                             integrity.value = "refresh"
                             return@launch
                         }
                     }
-                    val streamData = response.data?.user?.stream
+                    val streamData = response.data?.users?.firstOrNull()?.stream
                     if (streamData != null) {
                         _stream.value = Stream(
                             channelId = streamData.broadcaster?.id,
