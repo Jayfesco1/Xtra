@@ -89,17 +89,15 @@ class StreamStatusCheckerService : Service() {
                 val liveStreams = response.data.map {
                     Stream(
                         id = it.id,
-                        channelId = it.user_id,
-                        channelLogin = it.user_login,
-                        channelName = it.user_name,
+                        channelId = it.channelId,
+                        channelLogin = it.channelLogin,
+                        channelName = it.channelName,
                         title = it.title,
-                        viewerCount = it.viewer_count,
-                        startedAt = it.started_at,
-                        thumbnail = it.thumbnail_url.replace("{width}", "320").replace("{height}", "180"),
-                        gameId = it.game_id,
-                        gameName = it.game_name,
-                        channelLogo = null,
-                        gameSlug = null
+                        viewerCount = it.viewerCount,
+                        startedAt = it.startedAt,
+                        thumbnailUrl = it.thumbnailUrl,
+                        gameId = it.gameId,
+                        gameName = it.gameName
                     )
                 }
                 val currentlyPlaying = prefs().getString(C.CURRENTLY_PLAYING_STREAM, null)
