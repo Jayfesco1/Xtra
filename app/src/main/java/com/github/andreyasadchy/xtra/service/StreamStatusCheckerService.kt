@@ -67,11 +67,14 @@ class StreamStatusCheckerService : Service() {
     }
 
     private fun checkStreamStatus() {
+        Log.d("StreamStatusChecker", "Checking stream status...")
         if (!prefs().getBoolean(C.AUTO_PLAY_ENABLED, false)) {
+            Log.d("StreamStatusChecker", "Auto-play is disabled.")
             return
         }
         val rankedStreamers = prefs().getString(C.RANKED_STREAMERS_LIST, null)
         if (rankedStreamers.isNullOrEmpty()) {
+            Log.d("StreamStatusChecker", "Ranked streamers list is empty.")
             return
         }
         val rankedStreamersMap = rankedStreamers.split("\n").mapNotNull {
@@ -86,6 +89,7 @@ class StreamStatusCheckerService : Service() {
         }.groupBy({ it.first }, { it.second })
 
         if (rankedStreamersMap.isEmpty()) {
+            Log.d("StreamStatusChecker", "Ranked streamers map is empty.")
             return
         }
 
@@ -96,6 +100,7 @@ class StreamStatusCheckerService : Service() {
                     headers = TwitchApiHelper.getHelixHeaders(applicationContext),
                     logins = rankedStreamersMap.values.flatten()
                 )
+                Log.d("StreamStatusChecker", "Found ${response.data.size} live streams.")
                 val liveStreams = response.data.map {
                     Stream(
                         id = it.id,
@@ -116,6 +121,7 @@ class StreamStatusCheckerService : Service() {
 
                 for (stream in liveStreams) {
                     val rank = rankedStreamersMap.entries.find { it.value.contains(stream.channelLogin) }?.key
+                    Log.d("StreamStatusChecker", "Processing ${stream.channelLogin} with rank $rank")
                     if (rank != null && rank < highestRank) {
                         highestRank = rank
                         highestRankedLiveStream = stream
@@ -123,17 +129,23 @@ class StreamStatusCheckerService : Service() {
                 }
 
                 if (highestRankedLiveStream != null) {
+                    Log.d("StreamStatusChecker", "Highest ranked live stream is ${highestRankedLiveStream.channelLogin} with rank $highestRank")
                     val currentlyPlayingIsLive = liveStreams.any { it.channelLogin.equals(currentlyPlaying, ignoreCase = true) }
                     val currentRank = rankedStreamersMap.entries.find { it.value.contains(currentlyPlaying) }?.key
+                    Log.d("StreamStatusChecker", "Currently playing: $currentlyPlaying, Is live: $currentlyPlayingIsLive, Current rank: $currentRank")
 
                     if (currentlyPlaying.isNullOrEmpty() || !currentlyPlayingIsLive || (currentRank != null && highestRank < currentRank)) {
+                        Log.d("StreamStatusChecker", "Switching to ${highestRankedLiveStream.channelLogin}")
                         prefs().edit().putString(C.CURRENTLY_PLAYING_STREAM, highestRankedLiveStream.channelLogin).apply()
                         val intent = Intent(ACTION_OPEN_STREAM).apply {
                             putExtra(MainActivity.KEY_VIDEO, highestRankedLiveStream)
                         }
                         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+                    } else {
+                        Log.d("StreamStatusChecker", "Not switching streams.")
                     }
                 } else {
+                    Log.d("StreamStatusChecker", "No ranked streams are live.")
                     prefs().edit().remove(C.CURRENTLY_PLAYING_STREAM).apply()
                 }
             } catch (e: Exception) {

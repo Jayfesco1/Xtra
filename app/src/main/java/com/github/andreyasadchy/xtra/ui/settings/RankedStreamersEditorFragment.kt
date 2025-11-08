@@ -3,9 +3,11 @@ package com.github.andreyasadchy.xtra.ui.settings
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +20,11 @@ class RankedStreamersEditorFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: RankedStreamersAdapter
     private val streamers = mutableListOf<Pair<Int, String>>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,15 +39,25 @@ class RankedStreamersEditorFragment : Fragment() {
         adapter = RankedStreamersAdapter(streamers)
         recyclerView.adapter = adapter
 
-        view.findViewById<Button>(R.id.addButton).setOnClickListener {
-            adapter.addEmptySlot()
-        }
-
-        view.findViewById<Button>(R.id.saveButton).setOnClickListener {
-            saveStreamers()
-        }
-
         return view
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_ranked_streamers_editor, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_add -> {
+                adapter.addEmptySlot()
+                true
+            }
+            R.id.action_save -> {
+                saveStreamers()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     private fun loadStreamers() {
