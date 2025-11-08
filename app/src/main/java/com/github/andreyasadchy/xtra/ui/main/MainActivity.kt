@@ -540,13 +540,23 @@ class MainActivity : AppCompatActivity(), SlidingLayout.Listener {
                     else -> {
                         val login = url.substringAfter("twitch.tv/").takeIf { it.isNotBlank() }?.let { it.substringBefore("?", it.substringBefore("/")) }
                         if (!login.isNullOrBlank()) {
-                            viewModel.loadUser(
+                            viewModel.handleChannelLink(
                                 login,
                                 prefs.getString(C.NETWORK_LIBRARY, "OkHttp"),
                                 TwitchApiHelper.getGQLHeaders(this),
                                 TwitchApiHelper.getHelixHeaders(this),
                                 prefs.getBoolean(C.ENABLE_INTEGRITY, false),
                             )
+                            lifecycleScope.launch {
+                                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                                    viewModel.stream.collectLatest { stream ->
+                                        if (stream != null) {
+                                            startStream(stream)
+                                            viewModel.stream.value = null
+                                        }
+                                    }
+                                }
+                            }
                             lifecycleScope.launch {
                                 repeatOnLifecycle(Lifecycle.State.STARTED) {
                                     viewModel.user.collectLatest { user ->
