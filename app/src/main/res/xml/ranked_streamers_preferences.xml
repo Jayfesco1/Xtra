@@ -7,12 +7,10 @@
             app:title="@string/auto_play_title"
             app:summary="@string/auto_play_summary" />
 
-        <EditTextPreference
-            app:key="ranked_streamers_list"
+        <Preference
+            app:key="ranked_streamers_list_editor"
             app:title="@string/ranked_streamers_list_title"
-            app:summary="@string/ranked_streamers_list_summary"
-            app:dialogTitle="@string/ranked_streamers_list_dialog_title"
-            app:dialogLayout="@layout/dialog_edittext_multiline" />
+            app:summary="Manage your ranked streamer list" />
 
     </PreferenceCategory>
 

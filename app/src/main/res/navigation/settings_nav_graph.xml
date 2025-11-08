@@ -112,8 +112,16 @@
     <fragment
         android:id="@+id/rankedStreamersSettingsFragment"
         android:name="com.github.andreyasadchy.xtra.ui.settings.RankedStreamersSettingsFragment"
-        android:label="@string/ranked_streamers" />
+        android:label="@string/ranked_streamers" >
+        <action
+            android:id="@+id/action_rankedStreamersSettingsFragment_to_rankedStreamersEditorFragment"
+            app:destination="@id/rankedStreamersEditorFragment" />
+    </fragment>
     <action
         android:id="@+id/action_global_rankedStreamersSettingsFragment"
         app:destination="@id/rankedStreamersSettingsFragment" />
+    <fragment
+        android:id="@+id/rankedStreamersEditorFragment"
+        android:name="com.github.andreyasadchy.xtra.ui.settings.RankedStreamersEditorFragment"
+        android:label="Ranked Streamers Editor" />
 </navigation>

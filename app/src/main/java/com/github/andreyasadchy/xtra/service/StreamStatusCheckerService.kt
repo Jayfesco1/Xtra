@@ -74,8 +74,18 @@ class StreamStatusCheckerService : Service() {
         if (rankedStreamers.isNullOrEmpty()) {
             return
         }
-        val streamerLogins = rankedStreamers.split("\n").filter { it.isNotBlank() }
-        if (streamerLogins.isEmpty()) {
+        val rankedStreamersMap = rankedStreamers.split("\n").mapNotNull {
+            val parts = it.split(":")
+            if (parts.size == 2) {
+                parts[0].toIntOrNull()?.let { rank ->
+                    Pair(rank, parts[1])
+                }
+            } else {
+                null
+            }
+        }.groupBy({ it.first }, { it.second })
+
+        if (rankedStreamersMap.isEmpty()) {
             return
         }
 
@@ -84,7 +94,7 @@ class StreamStatusCheckerService : Service() {
                 val response = helixRepository.getStreams(
                     networkLibrary = prefs().getString(C.NETWORK_LIBRARY, "OkHttp"),
                     headers = TwitchApiHelper.getHelixHeaders(applicationContext),
-                    logins = streamerLogins
+                    logins = rankedStreamersMap.values.flatten()
                 )
                 val liveStreams = response.data.map {
                     Stream(
@@ -105,8 +115,8 @@ class StreamStatusCheckerService : Service() {
                 var highestRank = Int.MAX_VALUE
 
                 for (stream in liveStreams) {
-                    val rank = streamerLogins.indexOf(stream.channelLogin)
-                    if (rank != -1 && rank < highestRank) {
+                    val rank = rankedStreamersMap.entries.find { it.value.contains(stream.channelLogin) }?.key
+                    if (rank != null && rank < highestRank) {
                         highestRank = rank
                         highestRankedLiveStream = stream
                     }
@@ -114,9 +124,9 @@ class StreamStatusCheckerService : Service() {
 
                 if (highestRankedLiveStream != null) {
                     val currentlyPlayingIsLive = liveStreams.any { it.channelLogin.equals(currentlyPlaying, ignoreCase = true) }
-                    val currentRank = streamerLogins.indexOf(currentlyPlaying)
+                    val currentRank = rankedStreamersMap.entries.find { it.value.contains(currentlyPlaying) }?.key
 
-                    if (currentlyPlaying.isNullOrEmpty() || !currentlyPlayingIsLive || (currentRank != -1 && highestRank < currentRank)) {
+                    if (currentlyPlaying.isNullOrEmpty() || !currentlyPlayingIsLive || (currentRank != null && highestRank < currentRank)) {
                         prefs().edit().putString(C.CURRENTLY_PLAYING_STREAM, highestRankedLiveStream.channelLogin).apply()
                         val intent = Intent(ACTION_OPEN_STREAM).apply {
                             putExtra(MainActivity.KEY_VIDEO, highestRankedLiveStream)
